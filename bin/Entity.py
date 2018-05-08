@@ -6,17 +6,17 @@ class Entity:
 		self.name = name if name is not None else GenName().New()
 		self.health = 1
 		self.attack = .05
-	def onMessage(self, message):
-		if message.msgType == "damage":
-			print("{0} deals {1} damage to {2}").format(message.msgFrom,message.msgData,message.msgTo)
-			self.health -= message.msgFrom.attack
-		else:
-			print("I dunno what that means...")
 
 class Hostile(Entity):
 	def __init__(self):
 		self.abilities = []
 		super().__init__()
+	def onMessage(self, message):
+		if message.msgType == "damage":
+			print("{0} deals {1} damage to {2}").format(message.msgFrom,message.msgData,message.msgTo)
+			self.health -= message.msgData
+		else:
+			print("I dunno what that means...")
 
 class Friendly(Entity):
 	def __init__(self, recruitable=False, recruited=False):
@@ -25,10 +25,14 @@ class Friendly(Entity):
 		self.abilities = []
 		super().__init__()
 	def onMessage(self, message):
-		if message.msgType == "recruit":
+		if message.msgType == "damage":
+			print("{0} deals {1} damage to {2}").format(message.msgFrom,message.msgData,message.msgTo)
+			self.health -= message.msgData
+		elif message.msgType == "recruit":
 			if self.recruitable == True:
 				self.recruited = True
-
+		else:
+			print("I dunno what that means...")
 		
 '''
 	def attack_creature(self, Entity):
