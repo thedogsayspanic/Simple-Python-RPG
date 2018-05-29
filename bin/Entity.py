@@ -1,38 +1,46 @@
+from abc import ABC, abstractmethod
 from NameGenerator import GenName
 import random
 
-class Entity:
+class Entity(ABC):
+	@abstractmethod
+	def onMessage(self, message):
+		pass
+
+class Physical(Entity):
 	def __init__(self, name=None):
 		self.name = name if name is not None else GenName().New()
-		self.health = 1
-		self.attack = .05
-
-class Hostile(Entity):
-	def __init__(self):
-		self.abilities = []
-		super().__init__()
+		self.health = 100
+		self.attack = 5
 	def onMessage(self, message):
 		if message.msgType == "damage":
-			print("{0} deals {1} damage to {2}").format(message.msgFrom,message.msgData,message.msgTo)
+			print("{0} deals {1} damage to {2}").format(message.msgFrom.name,message.msgData,message.msgTo.name)
 			self.health -= message.msgData
 		else:
-			print("I dunno what that means...")
+			pass
 
-class Friendly(Entity):
+class Hostile(Physical):
+	def __init__(self):
+		self.abilities = []
+
+class Friendly(Physical):
 	def __init__(self, recruitable=False, recruited=False):
 		self.recruitable = recruitable
 		self.recruited = recruited
 		self.abilities = []
-		super().__init__()
 	def onMessage(self, message):
 		if message.msgType == "damage":
-			print("{0} deals {1} damage to {2}").format(message.msgFrom,message.msgData,message.msgTo)
+			print("{0} deals {1} damage to {2}").format(message.msgFrom.name,message.msgData,message.msgTo.name)
 			self.health -= message.msgData
 		elif message.msgType == "recruit":
 			if self.recruitable == True:
 				self.recruited = True
 		else:
-			print("I dunno what that means...")
+			pass
+
+class NonPhysical(Entity):
+	def __init__(self):
+		pass
 		
 '''
 	def attack_creature(self, Entity):
