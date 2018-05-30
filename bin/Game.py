@@ -1,11 +1,11 @@
 from Entity import Entity
+from MessageQueue import Message, MessageQueue
 import sys, os
 
 clear = lambda: os.system('cls')
+messageQueue = MessageQueue()
 
-playerName = input("What is your name?: ")
-
-Player = Entity(playerName)
+Player = Entity()
 Opponent = Entity()
 
 PlayerControl = 1
@@ -26,23 +26,37 @@ while(Player.health > 0 and Opponent.health > 0 and battling == True):
         command = input("Attack/Defend/Info/Exit/Restart: ")
 
         if command == "Attack":
-            Player.attack_creature(Opponent)
-            PlayerControl = 0
-            
-        elif command == "Defend":
-            #set defense
-            Player.defend()
+            msg = Message(Opponent,Player,"damage",Player.attack)
+            messageQueue.add(msg)
             PlayerControl = 0
 
         elif command == "Info":
-            CharCount = len(Player.name+Opponent.name)+7
-            print('-' * CharCount)
-            print("| %s | %s |" % (Player.name, Opponent.name))
-            print("| HP:%d | HP:%d |" % (Player.health, Opponent.health))
-            print("| AT:%d | AT:%d |" % (Player.attack, Opponent.attack))
-            print("| DE:%d | DE:%d |" % (Player.defense, Opponent.defense))
-            print("| DA:%s | DA:%s |" % (Player.defenseAdvantage, Opponent.defenseAdvantage))
-            print('-' * CharCount)
+            PMax = max(len(Player.name),len(str(Player.health))+3,len(str(Player.attack))+3)
+            OMax = max(len(Opponent.name),len(str(Opponent.health))+3,len(str(Opponent.attack))+3)
+            
+            objList = Player.items()
+            print(objList)
+
+            print('-'*(PMax+OMax+7))
+            print("| %s" % (Player.name), end='')
+            print(" "*(PMax-len(Player.name)), end='')
+            print(" | %s" % (Opponent.name), end='')
+            print(" "*(OMax-len(Opponent.name)), end='')
+            print(" |")
+            print('-'*(PMax+OMax+7))
+
+            print("| HP:%d" % (Player.health), end='')
+            print(" "*(PMax-len(str(Player.health))-3), end='')
+            print(" | HP:%d" % (Opponent.health), end='')
+            print(" "*(OMax-len(str(Opponent.health))-3), end='')
+            print(" |")
+
+            print("| AT:%d" % (Player.attack), end='')
+            print(" "*(PMax-len(str(Player.attack))-3), end='')
+            print(" | AT:%d" % (Opponent.attack), end='')
+            print(" "*(OMax-len(str(Opponent.attack))-3), end='')
+            print(" |")
+            print('-'*(PMax+OMax+7))
         
         elif command == "Exit":
             sys.exit(0)
@@ -51,20 +65,21 @@ while(Player.health > 0 and Opponent.health > 0 and battling == True):
             break
         else:
             print("That command doesn't exist, please try again.\n")
-        
+
+        messageQueue.dispatch()
+
         input("Press Enter to continue...")
-        #Clear screen
-        clear()
 
     else:
-        Opponent.attack_creature(Player)
+        msg = Message(Player,Opponent,"damage",Opponent.attack)
+        messageQueue.add(msg)
+        messageQueue.dispatch()
         PlayerControl = 1
         input("Press Enter to continue...")
-        #Clear screen
-        clear()
 
 if battling == False:
-	print("Restarting game...")
+    print("Restarting game...")
+    battling = True
 elif Player.health <= 0:
     print("%s has died. Farewell brave soul." % (Player.name))
 else:
